@@ -58,15 +58,25 @@ static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
-const unsigned TX_INTERVAL = 60;
+const unsigned TX_INTERVAL = 10;
 
-// Pin mapping
+//variables for power and spread factor
+u1_t power = 20;
+_dr_eu868_t sf = DR_SF7;
+
+
+u1_t myPort = 42; // application port
+
+int singleChannel = 0; //-1 uses a random channel
+
+// Pin mapping for Wemos Lora
 const lmic_pinmap lmic_pins = {
-    .nss = 6,
-    .rxtx = LMIC_UNUSED_PIN,
-    .rst = 5,
-    .dio = {2, 3, 4},
+  .nss = 16,
+  .rxtx = LMIC_UNUSED_PIN,
+  .rst = LMIC_UNUSED_PIN,
+  .dio = {15, LMIC_UNUSED_PIN, LMIC_UNUSED_PIN},
 };
+
 
 void onEvent (ev_t ev) {
     Serial.print(os_getTime());
@@ -139,7 +149,7 @@ void do_send(osjob_t* j){
         Serial.println(F("OP_TXRXPEND, not sending"));
     } else {
         // Prepare upstream data transmission at the next possible time.
-        LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
+        LMIC_setTxData2(myPort, mydata, sizeof(mydata)-1, 0);
         Serial.println(F("Packet queued"));
     }
     // Next TX is scheduled after TX_COMPLETE event.
@@ -207,6 +217,13 @@ void setup() {
     // https://github.com/TheThingsNetwork/gateway-conf/blob/master/US-global_conf.json
     LMIC_selectSubBand(1);
     #endif
+	
+    //*** disable channels to use the single channel gateway 
+    if (singleChannel >= 0) {
+      for (int i = 1; i < 16; i++) {
+        if (i != singleChannel)   LMIC_disableChannel(i);
+      }
+    }
 
     // Disable link check validation
     LMIC_setLinkCheckMode(0);
@@ -215,7 +232,7 @@ void setup() {
     LMIC.dn2Dr = DR_SF9;
 
     // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)
-    LMIC_setDrTxpow(DR_SF7,14);
+    LMIC_setDrTxpow(sf,power);
 
     // Start job
     do_send(&sendjob);
