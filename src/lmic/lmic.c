@@ -500,6 +500,10 @@ static void setDrTxpow (u1_t reason, u1_t dr, s1_t pow) {
                         e_.txpow     = pow,
                         e_.prevdr    = LMIC.datarate|DR_PAGE,
                         e_.prevtxpow = LMIC.adrTxPow));
+						
+	LMIC.bands[BAND_CENTI].txpow = pow; //### Setting the power in the band makes it effective
+	LMIC.bands[BAND_MILLI].txpow = pow; //###
+	LMIC.bands[BAND_DECI].txpow = pow; //###					
 
     if( pow != KEEP_TXPOW )
         LMIC.adrTxPow = pow;
@@ -632,7 +636,7 @@ static void updateTx (ostime_t txbeg) {
     // Update channel/global duty cycle stats
     xref2band_t band = &LMIC.bands[freq & 0x3];
     LMIC.freq  = freq & ~(u4_t)3;
-    LMIC.txpow = band->txpow;
+    LMIC.txpow = band->txpow; // ### power is set here
     band->avail = txbeg + airtime * band->txcap;
     if( LMIC.globalDutyRate != 0 )
         LMIC.globalDutyAvail = txbeg + (airtime<<LMIC.globalDutyRate);
@@ -2264,6 +2268,7 @@ int LMIC_setTxData2 (u1_t port, xref2u1_t data, u1_t dlen, u1_t confirmed) {
         os_copyMem(LMIC.pendTxData, data, dlen);
     LMIC.pendTxConf = confirmed;
     LMIC.pendTxPort = port;
+    //LMIC.pendTxPort = LMIC.txpow; // ### option to send the power in the port filed for debug
     LMIC.pendTxLen  = dlen;
     LMIC_setTxData();
     return 0;
