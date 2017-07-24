@@ -71,7 +71,7 @@ int singleChannel = 0; //-1 uses a random channel
 
 // Pin mapping for Wemos Lora
 const lmic_pinmap lmic_pins = {
-  .nss = 16,
+  .nss = D4,  //16 on LoraNode 1.1
   .rxtx = LMIC_UNUSED_PIN,
   .rst = LMIC_UNUSED_PIN,
   .dio = {15, LMIC_UNUSED_PIN, LMIC_UNUSED_PIN},
