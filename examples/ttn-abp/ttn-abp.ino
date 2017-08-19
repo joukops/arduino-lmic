@@ -61,17 +61,17 @@ static osjob_t sendjob;
 const unsigned TX_INTERVAL = 10;
 
 //variables for power and spread factor
-u1_t power = 20;
+u1_t power = 14;
 _dr_eu868_t sf = DR_SF7;
 
 
 u1_t myPort = 42; // application port
 
-int singleChannel = 0; //-1 uses a random channel
+int singleChannel = 0; // select a fixed channel (0..7) or a random one (-1)
 
 // Pin mapping for Wemos Lora
 const lmic_pinmap lmic_pins = {
-  .nss = D4,  //16 on LoraNode 1.1
+  .nss = D3,  //16 on LoraNode 1.2
   .rxtx = LMIC_UNUSED_PIN,
   .rst = LMIC_UNUSED_PIN,
   .dio = {15, LMIC_UNUSED_PIN, LMIC_UNUSED_PIN},
@@ -205,7 +205,7 @@ void setup() {
     LMIC_setupChannel(5, 867500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
     LMIC_setupChannel(6, 867700000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
     LMIC_setupChannel(7, 867900000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(8, 868800000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band
+    //LMIC_setupChannel(8, 868800000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band
     // TTN defines an additional channel at 869.525Mhz using SF9 for class B
     // devices' ping slots. LMIC does not have an easy way to define set this
     // frequency and support for class B is spotty and untested, so this
@@ -220,7 +220,7 @@ void setup() {
 	
     //*** disable channels to use the single channel gateway 
     if (singleChannel >= 0) {
-      for (int i = 1; i < 16; i++) {
+      for (int i = 0; i < 8; i++) {
         if (i != singleChannel)   LMIC_disableChannel(i);
       }
     }
